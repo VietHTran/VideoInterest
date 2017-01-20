@@ -29,7 +29,7 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VideoInterest.cpp">
+    <ClCompile Include="MyEmotiv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
