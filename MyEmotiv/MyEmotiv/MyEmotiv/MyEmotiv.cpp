@@ -37,9 +37,9 @@ using namespace std;
 bool isCooldown;
 UINT cooldown(LPVOID pParam)
 {
-	int* path = (int*)pParam;
+	int* time = (int*)pParam;
 	isCooldown = true;
-	Sleep(*path);
+	Sleep(*time);
 	isCooldown = false;
 	return 0;
 }
@@ -59,7 +59,6 @@ int main(int argc, char **argv)
 	EmoEngineEventHandle eEvent = IEE_EmoEngineEventCreate();
 	EmoStateHandle eState = IEE_EmoStateCreate();
 	unsigned int userID = 0;
-	string path = "../../../TextFile/status.txt";
 	int cooldownTime = 2000;
 	int* cooldownPtr = &cooldownTime;
 	ofstream file;
@@ -73,7 +72,7 @@ int main(int argc, char **argv)
 		}
 
 		int startSendPort = 30000;
-		cout << "Prepare to scan for winks" << endl;
+		cout << "Prepare to scan for frowns" << endl;
 		while (true) {
 			int state = IEE_EngineGetNextEvent(eEvent);
 			if (isCooldown) continue;
@@ -99,15 +98,16 @@ int main(int argc, char **argv)
 				case IEE_EmoStateUpdated:
 				{
 					IEE_EmoEngineEventGetEmoState(eEvent, eState);
-					bool leftWink = IS_FacialExpressionIsLeftWink(eState);
-					bool rightWink = IS_FacialExpressionIsRightWink(eState);
-					if (leftWink || rightWink) {
-						AfxBeginThread(cooldown, (LPVOID)cooldownPtr);
-						cout << "Wink" << endl;
-						file.open(path, ios::out);
-						file.clear();
-						file << "1";
-						file.close();
+
+					IEE_FacialExpressionAlgo_t upperFaceType = IS_FacialExpressionGetUpperFaceAction(eState);
+					float upperFaceVol = IS_FacialExpressionGetUpperFaceActionPower(eState);
+
+					if (upperFaceVol>0.0) {
+						if (upperFaceType == FE_FROWN) {
+							AfxBeginThread(cooldown, (LPVOID)cooldownPtr);
+							//Change Brightness + video speed
+							cout << "Frown" << endl;
+						}
 					}
 					break;
 				}
