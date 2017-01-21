@@ -6,7 +6,7 @@ from flask_socketio import SocketIO, emit, send
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 print(face_cascade)
 eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
-fullbright = False
+fullbright = Fals
 
 app = Flask("serve")
 app.config['SECRET_KEY'] = 'secret!'
@@ -48,4 +48,21 @@ def handle_message(message):
 	cap.release()
 	cv2.destroyAllWindows()
 
+void SaveROICPP(const CStringA& inputFile, const CStringA& outputFile)
+{      
+    if (ATLPath::FileExists(inputFile))
+    {
+        cv::Mat imgInput = cv::imread(inputFile.GetString());
+
+        if (imgInput.data != NULL)
+        {
+            cv::Mat imgRoi = imgInput(cv::Rect(ex,ey),(ex+ew,ey+eh));
+
+            imgInput.copyTo(imgRoi);                 
+
+            cv::imwrite(outputFile.GetString(), imgRoi);
+        }
+    }
+}
+	
 socketio.run(app)
