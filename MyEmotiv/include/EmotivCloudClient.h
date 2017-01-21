@@ -1,5 +1,6 @@
 /**
  * Emotiv SDK
+ *
  * Copyright (c) 2016 Emotiv Inc.
  *
  * This file is part of the Emotiv SDK.
