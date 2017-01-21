@@ -35,6 +35,8 @@
 using namespace std;
 
 bool isCooldown;
+bool isFrown;
+ofstream file;
 UINT cooldown(LPVOID pParam)
 {
 	int* time = (int*)pParam;
@@ -43,6 +45,14 @@ UINT cooldown(LPVOID pParam)
 	isCooldown = false;
 	return 0;
 }
+
+void writeToFile(string status) {
+	file.open("status.txt", ios::out);
+	file.clear();
+	file << status;
+	file.close();
+}
+
 int main(int argc, char **argv)
 {
 	string receiverHost = "localhost";
@@ -61,7 +71,6 @@ int main(int argc, char **argv)
 	unsigned int userID = 0;
 	int cooldownTime = 2000;
 	int* cooldownPtr = &cooldownTime;
-	ofstream file;
 	const int CONTROL_PANEL_PORT = 3008;
 	try {
 		if (IEE_EngineConnect() != EDK_OK) {
@@ -101,13 +110,22 @@ int main(int argc, char **argv)
 
 					IEE_FacialExpressionAlgo_t upperFaceType = IS_FacialExpressionGetUpperFaceAction(eState);
 					float upperFaceVol = IS_FacialExpressionGetUpperFaceActionPower(eState);
+					IEE_FacialExpressionAlgo_t lowerFaceType = IS_FacialExpressionGetLowerFaceAction(eState);
+					float lowerFaceVol = IS_FacialExpressionGetLowerFaceActionPower(eState);
 
-					if (upperFaceVol>0.0) {
+					if (!IS_FacialExpressionIsBlink(eState) && !isFrown && upperFaceVol>0.5) {
 						if (upperFaceType == FE_FROWN) {
 							AfxBeginThread(cooldown, (LPVOID)cooldownPtr);
+							cout << "Frown " << upperFaceVol << endl;
+							writeToFile("1");
 							//Change Brightness + video speed
-							cout << "Frown" << endl;
+							isFrown = true;
 						}
+					} else if (isFrown && lowerFaceType==FE_SMILE && lowerFaceVol>0.0) {
+						isFrown = false;
+						cout << "Back to normal" << endl;
+						writeToFile("0");
+						//Change settings back to normal
 					}
 					break;
 				}
