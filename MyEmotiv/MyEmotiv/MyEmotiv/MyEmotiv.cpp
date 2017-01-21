@@ -37,6 +37,9 @@ using namespace std;
 bool isCooldown;
 bool isFrown;
 ofstream file;
+IEE_DataChannel_t channelList[] = { IED_T7, IED_T8, IED_Pz };
+const char header[] = "Low\tHigh";
+
 UINT cooldown(LPVOID pParam)
 {
 	int* time = (int*)pParam;
@@ -69,7 +72,7 @@ int main(int argc, char **argv)
 	EmoEngineEventHandle eEvent = IEE_EmoEngineEventCreate();
 	EmoStateHandle eState = IEE_EmoStateCreate();
 	unsigned int userID = 0;
-	int cooldownTime = 2000;
+	int cooldownTime = 5000;
 	int* cooldownPtr = &cooldownTime;
 	const int CONTROL_PANEL_PORT = 3008;
 	try {
@@ -81,7 +84,7 @@ int main(int argc, char **argv)
 		}
 
 		int startSendPort = 30000;
-		cout << "Prepare to scan for frowns" << endl;
+		cout << "Prepare to scan for brainwaves" << endl;
 		while (true) {
 			int state = IEE_EngineGetNextEvent(eEvent);
 			if (isCooldown) continue;
@@ -103,34 +106,7 @@ int main(int argc, char **argv)
 					cout << endl << "User " << userID
 						<< " has been removed." << endl;
 					break;
-				}
-				case IEE_EmoStateUpdated:
-				{
-					IEE_EmoEngineEventGetEmoState(eEvent, eState);
-
-					IEE_FacialExpressionAlgo_t upperFaceType = IS_FacialExpressionGetUpperFaceAction(eState);
-					float upperFaceVol = IS_FacialExpressionGetUpperFaceActionPower(eState);
-					IEE_FacialExpressionAlgo_t lowerFaceType = IS_FacialExpressionGetLowerFaceAction(eState);
-					float lowerFaceVol = IS_FacialExpressionGetLowerFaceActionPower(eState);
-
-					if (!IS_FacialExpressionIsBlink(eState) && !isFrown && upperFaceVol>0.5) {
-						if (upperFaceType == FE_FROWN) {
-							AfxBeginThread(cooldown, (LPVOID)cooldownPtr);
-							cout << "Frown " << upperFaceVol << endl;
-							writeToFile("1");
-							//Change Brightness + video speed
-							isFrown = true;
-						}
-					} else if (isFrown && lowerFaceType==FE_SMILE && lowerFaceVol>0.0) {
-						isFrown = false;
-						cout << "Back to normal" << endl;
-						writeToFile("0");
-						//Change settings back to normal
-					}
-					break;
-				}
-				case IEE_FacialExpressionEvent: {}
-				default:
+				} default:
 					break;
 				}
 			}
@@ -138,8 +114,31 @@ int main(int argc, char **argv)
 				cout << endl << "Internal error in Emotiv Engine!"
 					<< endl;
 				break;
+			} else {
+				cout << "Prepare to scan for brainwaves" << endl;
+				double alpha, lowBeta, highBeta, gamma, theta;
+				alpha = lowBeta = highBeta = gamma = theta = 0;
+				int length = sizeof(channelList) / sizeof(channelList[0]);
+				cout << header << endl;
+				for (int i = 0; i < length; i++) {
+					int result = IEE_GetAverageBandPowers(userID, 
+						channelList[i], 
+						&theta, 
+						&alpha, 
+						&lowBeta,
+						&highBeta,
+						&gamma);
+					if (result == EDK_OK) {
+						cout << theta << '\t' 
+							<< alpha << '\t' 
+							<< lowBeta << '\t' 
+							<< highBeta << '\t' 
+							<< gamma << endl;
+					}
+				}
+				AfxBeginThread(cooldown, (LPVOID)cooldownPtr);
 			}
-			//Sleep(15);
+			
 		}
 	}
 	catch (const runtime_error& e) {
