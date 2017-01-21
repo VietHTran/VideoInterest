@@ -47,22 +47,5 @@ def handle_message(message):
 	cv2.waitKey(500)
 	cap.release()
 	cv2.destroyAllWindows()
-
-void SaveROICPP(const CStringA& inputFile, const CStringA& outputFile)
-{      
-    if (ATLPath::FileExists(inputFile))
-    {
-        cv::Mat imgInput = cv::imread(inputFile.GetString());
-
-        if (imgInput.data != NULL)
-        {
-            cv::Mat imgRoi = imgInput(cv::Rect(ex,ey),(ex+ew,ey+eh));
-
-            imgInput.copyTo(imgRoi);                 
-
-            cv::imwrite(outputFile.GetString(), imgRoi);
-        }
-    }
-}
 	
 socketio.run(app)
