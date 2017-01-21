@@ -90,14 +90,14 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../include; C:\Program Files\boost\boost_1_63_0</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include; C:\Program Files\boost\boost_1_63_0\boost_1_63_0</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>../exe/$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>../../lib/win32;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>edk.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../lib/win32;C:\Program Files\Boost\boost_1_63_0\boost_1_63_0\stage\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>edk.lib; libboost_system-vc140-mt-gd-1_63.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

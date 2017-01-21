@@ -38,7 +38,14 @@
 #include <thread>
 #endif
 
+#include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/asio.hpp>
+#include <boost/array.hpp>
+
 using namespace std;
+using boost::asio::ip::tcp;
 
 bool isCooldown;
 bool isFrown;
@@ -52,6 +59,42 @@ UINT cooldown(LPVOID pParam)
 	Sleep(*time);
 	isCooldown = false;
 	return 0;
+}
+#endif
+
+char **argvt;
+#ifdef _WIN32
+UINT startClient(LPVOID pParam)
+{
+	boost::asio::io_service io_service;
+
+	tcp::resolver resolver(io_service);
+	tcp::resolver::query query(argvt[1], "daytime");
+	tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+	tcp::resolver::iterator end;
+
+	tcp::socket socket(io_service);
+	boost::system::error_code error = boost::asio::error::host_not_found;
+	while (error && endpoint_iterator != end)
+	{
+		socket.close();
+		socket.connect(*endpoint_iterator++, error);
+	}
+	if (error)
+		throw boost::system::system_error(error);
+
+	for (;;)
+	{
+		boost::array<char, 128> buf;
+		boost::system::error_code error;
+
+		size_t len = socket.read_some(boost::asio::buffer(buf), error);
+
+		if (error == boost::asio::error::eof)
+			break; // Connection closed cleanly by peer.
+		else if (error)
+			throw boost::system::system_error(error); // Some other error
+	}
 }
 #endif
 
@@ -82,6 +125,8 @@ void writeToFile(string status) {
 
 int main(int argc, char **argv)
 {
+	argvt = argv;
+	AfxBeginThread(startClient, (LPVOID)argv);
 	string receiverHost = "localhost";
 	if (argc > 2) {
 		cout << "Usage: " << argv[0] << " <hostname>" << endl;
@@ -144,14 +189,14 @@ int main(int argc, char **argv)
 						if (upperFaceType == FE_FROWN) {
 							runBackgroundCoolDown(cooldownPtr);
 							cout << "Frown " << upperFaceVol << endl;
-							writeToFile("1");
+							//sendMessage("1");
 							//Change Brightness + video speed
 							isFrown = true;
 						}
 					} else if (isFrown && lowerFaceType==FE_SMILE && lowerFaceVol>0.0) {
 						isFrown = false;
 						cout << "Back to normal" << endl;
-						writeToFile("0");
+						//sendMessage("0");
 						//Change settings back to normal
 					}
 					break;
@@ -173,6 +218,8 @@ int main(int argc, char **argv)
 		cout << "Press 'Enter' to exit..." << endl;
 		getchar();
 	}
+
+
 	system("pause");
 	return 0;
 }
