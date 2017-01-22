@@ -2,11 +2,12 @@ import numpy as np
 import cv2
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit, send
+import socket
 
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 print(face_cascade)
 eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
-fullbright = Fals
+fullbright = False
 
 app = Flask("serve")
 app.config['SECRET_KEY'] = 'secret!'
@@ -36,6 +37,13 @@ def handle_message(message):
 		fullbright = True
 		f.close()
 		send("slow")
+	elif(numEyes == 1):
+		f = open('/sys/class/backlight/intel_backlight/brightness', 'w')
+		f.truncate()
+		f.write("750")
+		fullbright = True
+		f.close()
+		send("medium")
 	elif fullbright:
 		f = open('/sys/class/backlight/intel_backlight/brightness', 'w')
 		f.truncate()
@@ -43,9 +51,6 @@ def handle_message(message):
 		fullbright = False
 		f.close()
 		send("fast")
-	cv2.imshow("img", img)
-	cv2.waitKey(500)
-	cap.release()
-	cv2.destroyAllWindows()
 	
 socketio.run(app)
+
