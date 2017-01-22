@@ -1,5 +1,5 @@
 #ResponsiveMOOC
-*Making Massively Online Open Courseware responsive to viewers by making second-by-second, focus-sensitive modifications to video content. Presented by **Raymond Chen, Devyash Lodha  Stephen Mylabathula**, and **Viet Tran**.*
+*Making Massively Online Open Courseware responsive to viewers by making second-by-second, focus-sensitive modifications to video content. Presented by Raymond Chen, Devyash Lodha, Stephen Mylabathula, and Viet Tran.*
 
 
 ##Synposis
