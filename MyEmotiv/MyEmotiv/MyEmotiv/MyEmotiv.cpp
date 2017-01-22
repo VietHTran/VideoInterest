@@ -10,9 +10,10 @@
 #include "IEmoStateDLL.h"
 #include "Iedk.h"
 #include "IedkErrorCode.h"
+
+#ifdef _WIN32
 #include <conio.h>
 #pragma comment(lib, "Ws2_32.lib")
-///////Windows Libraries///////
 #define _WIN32_WINNT 0x0600
 #define _WIN32_IE 0x0700
 #define _UNICODE
@@ -30,13 +31,20 @@
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "propsys.lib")
 #pragma once
-/////////////////////////////////////
+#endif
+#if __linux__ || __APPLE__
+#include <unistd.h>
+#include <termios.h>
+#include <thread>
+#endif
 
 using namespace std;
 
 bool isCooldown;
 bool isFrown;
 ofstream file;
+
+#ifdef _WIN32
 UINT cooldown(LPVOID pParam)
 {
 	int* time = (int*)pParam;
@@ -44,6 +52,25 @@ UINT cooldown(LPVOID pParam)
 	Sleep(*time);
 	isCooldown = false;
 	return 0;
+}
+#endif
+
+#if __linux__ || __APPLE__
+void cooldown(int time)
+{
+	isCooldown = true;
+	usleep(time);
+	isCooldown = false;
+}
+#endif
+
+void runBackgroundCoolDown(int* cooldownTime) {
+#ifdef _WIN32
+	AfxBeginThread(cooldown, (LPVOID)cooldownTime);
+#endif
+#if __linux__ || __APPLE__
+	cooldown(*cooldownTime);
+#endif
 }
 
 void writeToFile(string status) {
@@ -115,7 +142,7 @@ int main(int argc, char **argv)
 
 					if (!IS_FacialExpressionIsBlink(eState) && !isFrown && upperFaceVol>0.5) {
 						if (upperFaceType == FE_FROWN) {
-							AfxBeginThread(cooldown, (LPVOID)cooldownPtr);
+							runBackgroundCoolDown(cooldownPtr);
 							cout << "Frown " << upperFaceVol << endl;
 							writeToFile("1");
 							//Change Brightness + video speed
@@ -139,7 +166,6 @@ int main(int argc, char **argv)
 					<< endl;
 				break;
 			}
-			//Sleep(15);
 		}
 	}
 	catch (const runtime_error& e) {

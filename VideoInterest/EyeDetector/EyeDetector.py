@@ -6,7 +6,7 @@ from flask_socketio import SocketIO, emit, send
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 print(face_cascade)
 eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
-fullbright = False
+fullbright = Fals
 
 app = Flask("serve")
 app.config['SECRET_KEY'] = 'secret!'
@@ -47,5 +47,5 @@ def handle_message(message):
 	cv2.waitKey(500)
 	cap.release()
 	cv2.destroyAllWindows()
-
+	
 socketio.run(app)
